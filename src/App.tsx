@@ -53,10 +53,33 @@ export default function App() {
   const [savedId, setSavedId] = React.useState<string | null>(null);
   const [pdfOpen, setPdfOpen] = React.useState(false);
 
+  const errorBannerRef = React.useRef<HTMLDivElement>(null);
+  const submitErrorRef = React.useRef<HTMLDivElement>(null);
+
   const patch = <K extends keyof CvFormData>(key: K, value: CvFormData[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
   const errorKeys = Object.keys(errors) as SectionKey[];
+
+  // Scroll to the validation error banner whenever new errors appear.
+  React.useEffect(() => {
+    if (Object.keys(errors).length > 0) {
+      errorBannerRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, [errors]);
+
+  // Scroll to the server error message when a submission fails.
+  React.useEffect(() => {
+    if (submitError) {
+      submitErrorRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [submitError]);
 
   const handleGenerate = async () => {
     setSubmitError(null);
@@ -112,7 +135,10 @@ export default function App() {
         {/* ── Left: form ─────────────────────────────────────────── */}
         <div className="flex flex-col gap-4">
           {errorKeys.length > 0 && (
-            <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+            <div
+              ref={errorBannerRef}
+              className="flex scroll-mt-24 items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive"
+            >
               <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
               <div>
                 <p className="font-medium">
@@ -192,7 +218,10 @@ export default function App() {
           </div>
 
           {submitError && (
-            <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+            <div
+              ref={submitErrorRef}
+              className="flex scroll-mt-24 items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
+            >
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <span>{submitError}</span>
             </div>
@@ -216,6 +245,24 @@ export default function App() {
           </Button>
         </aside>
       </main>
+
+      {/* Standard footer */}
+      <footer className="border-t bg-white">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-5 py-6 text-sm text-muted-foreground sm:flex-row">
+          <p className="text-xs">© {new Date().getFullYear()} CV Generator. Semua hak dilindungi.</p>
+          <p className="text-xs">
+            Powered by{" "}
+            <a
+              href="https://www.clarate.id"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-primary hover:underline"
+            >
+              Clarate Software
+            </a>
+          </p>
+        </div>
+      </footer>
 
       <PdfModal
         open={pdfOpen}
